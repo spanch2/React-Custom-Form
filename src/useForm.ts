@@ -1,28 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 const useForm = (submit: Function, validate: Function, initialState: React.ComponentState) => {
-  interface Errors {
-    name?: string
-    year?: string
-  }
   const [values, setValues] = useState(initialState)
-  const [errors, setErrors] = useState({} as Errors)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState({})
 
-  useEffect(() => {
-    if (Object.keys(errors).length === 0 && isSubmitting) {
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    const validationErrors = validate(values)
+    setErrors(validationErrors)
+    if (Object.keys(validationErrors).length === 0) {
       submit()
       setValues(initialState)
     }
-  }, [errors])
-
-  const handleSubmit = (event: React.FormEvent) => {
-    if (event) {
-      event.preventDefault()
-      setIsSubmitting(true)
-      setErrors(validate(values))
-    }
   }
+
   const handleInputChange = (event: React.ChangeEvent) => {
     event.persist()
     const target = event.target as any
@@ -35,11 +26,11 @@ const useForm = (submit: Function, validate: Function, initialState: React.Compo
     }
   }
 
-  return {
+  return [
     handleInputChange,
     handleSubmit,
     values,
     errors
-  }
+  ]
 }
 export default useForm

@@ -20,20 +20,26 @@ import {
 import './Form.css'
 import useForm from './useForm'
 
-interface Errors {
-    name?: string
-    year?: string
-}
 export default function Form () {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [customFields, setCustomFields] = useState<any[]>([])
-  const submit = () => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+
+  const [handleInputChange, handleSubmit, values, errors] = useForm(submit, validate,
+    {
+      name: '',
+      frontend: false,
+      backend: false,
+      year: ''
+    }
+  )
+
+  function submit () {
     console.log(values)
     setCustomFields([])
   }
-  const validate = (values: React.ComponentState) => {
-    const errors: Errors = {}
+
+  function validate (values: React.ComponentState) {
+    const errors: {[k: string]: string} = {}
     if (values.name === '') {
       errors.name = 'Required'
     }
@@ -42,43 +48,25 @@ export default function Form () {
     }
     return errors
   }
-  const { values, handleInputChange, handleSubmit, errors } = useForm(submit, validate,
+
+  const [handleNewInputChange, handleNewInputSubmit, newInputValues, newInputErrors] = useForm(addNewInput, validateNewInput,
     {
-      name: '',
-      frontend: false,
-      backend: false,
-      year: ''
+      name: ''
     }
   )
-  const addNewInput = () => {
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    console.log(newInputValues.name)
-    setCustomFields((fields: any) => [...fields,
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        <FormControl key={newInputValues.name} marginTop={4} marginBottom={4}>
-            <InputGroup>
-                {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-                <InputLeftAddon>{newInputValues.name}</InputLeftAddon>
-                {/* eslint-disable-next-line @typescript-eslint/no-use-before-define */}
-                <Input onChange={handleInputChange} name={newInputValues.name}/>
-            </InputGroup>
-            <FormErrorMessage>{errors.name}</FormErrorMessage>
-        </FormControl>
-    ])
+
+  function addNewInput () {
+    setCustomFields((fields: string[]) => [...fields, newInputValues.name])
     onClose()
   }
-  const validateNewInput = (values: React.ComponentState) => {
-    const errors: Errors = {}
+
+  function validateNewInput (values: React.ComponentState) {
+    const errors: {[k: string]: string} = {}
     if (values.name === '') {
       errors.name = 'Required'
     }
     return errors
   }
-  const { values: newInputValues, handleInputChange: handleNewInputChange, handleSubmit: handleNewInputSubmit, errors: newInputErrors } = useForm(addNewInput, validateNewInput,
-    {
-      name: ''
-    }
-  )
 
   return (
         <div className="form">
@@ -95,13 +83,13 @@ export default function Form () {
                     <FormLabel htmlFor="Frontend" mb="0">
                         I want to learn frontend
                     </FormLabel>
-                    <Switch id="Frontend" onChange={handleInputChange} name="frontend"/>
+                    <Switch id="Frontend" onChange={handleInputChange} name="frontend" isChecked={values.frontend}/>
                 </FormControl>
                 <FormControl display="flex" alignItems="center" marginTop={4} marginBottom={4}>
                     <FormLabel htmlFor="Backend" mb="0">
                         I want to learn backend
                     </FormLabel>
-                    <Switch id="Backend" onChange={handleInputChange} name="backend"/>
+                    <Switch id="Backend" onChange={handleInputChange} name="backend" isChecked={values.backend}/>
                 </FormControl>
                 <FormControl id="year" marginTop={4} marginBottom={4} isInvalid={errors.year !== undefined}>
                     <Select placeholder='I am a...' onChange={handleInputChange} name="year" value={values.year}>
@@ -111,7 +99,14 @@ export default function Form () {
                     </Select>
                     <FormErrorMessage>{errors.year}</FormErrorMessage>
                 </FormControl>
-                {customFields}
+                {customFields.map((inputName) =>
+                    <FormControl key={inputName} marginTop={4} marginBottom={4}>
+                        <InputGroup>
+                            <InputLeftAddon>{inputName}</InputLeftAddon>
+                            <Input onChange={handleInputChange} name={inputName}/>
+                        </InputGroup>
+                    </FormControl>
+                )}
                 <Button colorScheme="blue" marginTop={1} type="submit">Submit</Button>
                 <Button colorScheme="blue" variant='outline' marginTop={1} marginLeft={4} onClick={onOpen}>Add a Text Input</Button>
             </form>
